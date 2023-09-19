@@ -5,49 +5,56 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
+import pojos.JsonPojo;
+import pojos.heroPojo;
 
 import static io.restassured.RestAssured.given;
 
 public class Test04Pojo {
-     /*
-    https://restful-booker.herokuapp.com/booking url’ine asagidaki body’ye sahip bir POST
-    request gonderdigimizde
-    {
-      “firstname” : “Ahmet”,
-      “lastname” : “Bulut”,
-      “totalprice” : 500,
-      “depositpaid” : false,
-      “bookingdates” : {
-                        “checkin” : “2021-06-01”,
-                        “checkout” : “2021-06-10”
-                        },
-       “additionalneeds” : “wi-fi”
-    }
-                donen Response’un,
-                status code’unun 200,
-                ve content type’inin application-json, ve response body’sindeki
-                “firstname”in,“Ahmet”, ve “lastname”in, “Bulut”,
-                ve “totalprice”in,500,
-                ve “depositpaid”in,false,
-                ve “checkin” tarihinin 2021-06-01 ve “checkout” tarihinin 2021-06-10 ve “additionalneeds”in,“wi-fi” olduğunu test edin (edited)
-         */
 
     static RequestSpecification spec;
 
     @Test
-    public void Test01(){
+    public void test01(){
 
-        spec = new RequestSpecBuilder().setBaseUri("http://www.heallifehospital.com").build();
 
-        spec.pathParams("pp1","api","pp2","ipdList");
+                        /*
+https://restful-booker.herokuapp.com/booking url’ine asagidaki body’ye sahip bir POST
+request gonderdigimizde
+{
+  “firstname” : “Ahmet”,
+  “lastname” : “Bulut”,
+  “totalprice” : 500,
+  “depositpaid” : false,
+  “bookingdates” : {
+                    “checkin” : “2021-06-01”,
+                    “checkout” : “2021-06-10”
+                    },
+   “additionalneeds” : “wi-fi”
+}
+            donen Response’un,
+            status code’unun 200,
+            ve content type’inin application-json, ve response body’sindeki
+            “firstname”in,“Ahmet”, ve “lastname”in, “Bulut”,
+            ve “totalprice”in,500,
+            ve “depositpaid”in,false,
+            ve “checkin” tarihinin 2021-06-01 ve “checkout” tarihinin 2021-06-10 ve “additionalneeds”in,“wi-fi” olduğunu test edin (edited)
+     */
 
-        String fullPath = "{pp1}/{pp2}";
-        JSONObject innerBody = new JSONObject();
+
+        spec = new RequestSpecBuilder().setBaseUri("https://restful-booker.herokuapp.com").build(); // ana sayfa oluşturuldu
+
+        spec.pathParams("pp1","booking");// parametreler oluşturuldu
+
+        String fullPath = "/{pp1}"; // parametre girişi için kolay bir string oluşturuldu
+
+        JSONObject innerBody = new JSONObject();  // kucuk objemiz
         innerBody.put("checkin","2021-06-01");
         innerBody.put("checkout","2021-06-10");
 
-        JSONObject reqBody = new JSONObject();
+        JSONObject reqBody = new JSONObject(); // ana request body oluşturuldu
         reqBody.put("firstname","Ahmet");
         reqBody.put("lastname","Bulut");
         reqBody.put("totalprice",500);
@@ -55,19 +62,66 @@ public class Test04Pojo {
         reqBody.put("bookingdates",innerBody);
         reqBody.put("additionalneeds","wi-fi");
 
+
         Response response = given()
-                .contentType(ContentType.JSON)
-                .spec(spec)
-                .headers("Content-Type",ContentType.JSON,
-                        "Accept", ContentType.JSON)
+                .contentType(ContentType.JSON)  // gönderdiğim veriler json formatında
+                .spec(spec) // olşturduğum ( spec isimli obje )base url ve parametreleri kullanacağım
+                .headers(
+                        "Content-Type", ContentType.JSON,  // gönderdiğim bilgilerJson formatında
+                        "Accept",ContentType.JSON       // bana cevabı ( response) Json formatında gönder
+                )
                 .when()
-                .body(reqBody.toString())
-                .log().all()
-                .post(fullPath);
+                .body(reqBody.toString())  // request içinde body varsa
+                .log().all()            // oluşturuduğumuz requesti toplu halde görmek için
+                .post(fullPath);        // parametrelerle beraber, request type girişi
 
-        System.out.println("***********************RESPONSE*********************");
+//        System.out.println("************ Response **************");
+//        response.prettyPrint();
 
-        response.prettyPrint();
+
+        heroPojo responseHeroPojo = response.as(heroPojo.class);
+        System.out.println(responseHeroPojo);
+
+
+        //            donen Response’un,
+        //            status code’unun 200,
+        //            ve content type’inin application-json, ve response body’sindeki
+        //            “firstname”in,“Ahmet”, ve “lastname”in, “Bulut”,
+        //            ve “totalprice”in,500,
+        //            ve “depositpaid”in,false,
+        //            ve “checkin” tarihinin 2021-06-01 ve “checkout” tarihinin 2021-06-10 ve “additionalneeds”in,“wi-fi” olduğunu test edin (edited)
+
+//{
+//    "bookingid": 4979,
+//    "booking": {
+//        "firstname": "Ahmet",
+//        "lastname": "Bulut",
+//        "totalprice": 500,
+//        "depositpaid": false,
+//        "bookingdates": {
+//            "checkin": "2021-06-01",
+//            "checkout": "2021-06-10"
+//        },
+//        "additionalneeds": "wi-fi"
+//    }
+//}
+        Assert.assertEquals("Ahmet",responseHeroPojo.getBooking().getFirstname());
+        Assert.assertEquals("Bulut",responseHeroPojo.getBooking().getLastname());
+        Assert.assertEquals(500,responseHeroPojo.getBooking().getTotalprice());
+        Assert.assertEquals(false,responseHeroPojo.getBooking().isDepositpaid());
+        Assert.assertEquals("2021-06-01",responseHeroPojo.getBooking().getBookingdates().getCheckin());
+        Assert.assertEquals("2021-06-10",responseHeroPojo.getBooking().getBookingdates().getCheckout());
+        Assert.assertEquals("wi-fi",responseHeroPojo.getBooking().getAdditionalneeds());
+
+
+        // responsı https://www.jsonschema2pojo.org/ sitesinden oluşturduğumuz pojo classlar ile test etme
+
+        JsonPojo responseJsonObject = response.as(JsonPojo.class);
+
+        Assert.assertEquals("Ahmet",responseJsonObject.booking.firstname);
+        Assert.assertEquals("Bulut",responseJsonObject.booking.lastname);
+        //responseJsonObject.booking.bookingdates.checkin
+        Assert.assertEquals("2021-06-01",responseJsonObject.booking.bookingdates.checkin);
 
 
     }

@@ -15,34 +15,37 @@ public class Test02 {
     @Test
     public void test01(){
 
-        // api/opdList endpoint'ine gecerli authorization bilgileri ile bir GET request gönderildiginde
+        //api/opdList endpoint'ine gecerli authorization bilgileri ile bir GET request gönderildiginde
         // dönen status code'un 200 oldugu
         // ve response message bilgisinin "Success" oldugu dogrulanmali
 
+        //gecerli authorization bilgileri postman kullanarak manuel olarak aldık
         String token = "Wbg6prp8qsGoOjfnY5nerVhTikDGDv";
 
-        spec = new RequestSpecBuilder().setBaseUri("http://www.heallifehospital.com").build();
+        //https://www.heallifehospital.com/api/opdList
+        spec = new RequestSpecBuilder().setBaseUri("http://www.heallifehospital.com").build(); // ana sayfa oluşturuldu
 
-        spec.pathParams("pp1","api","pp2","opdList");
+        spec.pathParams("pp1","api","pp2","opdList");// parametreler oluşturuldu
 
-        String fullPath = "{pp1}/{pp2}";
+        String fullPath = "/{pp1}/{pp2}"; // parametre girişi için kolay bir string oluşturuldu
+
 
         Response response = given()
-                .contentType(ContentType.JSON)
-                .spec(spec)
+                .contentType(ContentType.JSON)  // gönderdiğim veriler json formatında
+                .spec(spec) // olşturduğum ( spec isimli obje )base url ve parametreleri kullanacağım
                 .headers(
-                        "Authorization","Bearer "+token,
-                        "Content-Type",ContentType.JSON,
-                        "Accept", ContentType.JSON)
+                        "Authorization","Bearer "+token, // gerekli authorization bilgisi giriş satırı
+                        "Content-Type", ContentType.JSON,  // gönderdiğim bilgilerJson formatında
+                        "Accept",ContentType.JSON       // bana cevabı ( response) Json formatında gönder
+                )
                 .when()
+                //.body(reqBody.toString())  // request içinde body varsa
+                .log().all()            // oluşturuduğumuz requesti toplu halde görmek için
+                .get(fullPath);        // parametrelerle beraber, request type girişi
 
-                .log().all()
-                .get(fullPath);
 
-        System.out.println("***********************RESPONSE*********************");
-
+        System.out.println("************ Response **************");
         response.prettyPrint();
-
 
 
     }

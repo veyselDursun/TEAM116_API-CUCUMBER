@@ -1,38 +1,45 @@
 package stepDefinitions;
 
+import io.cucumber.java.en.*;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.junit.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-public class Test03 {
+public class HealLifeHospitalStepDefinitions {
 
-
+    String token;
     static RequestSpecification spec;
-
-    @Test
-    public void test01(){
-
-
-        ///api/ipdList endpoint'ine gecerli authorization bilgileri ile bir GET request gönderildiginde
-        // dönen status code'un 200 oldugu ve
-        // response message bilgisinin "Success" oldugu dogrulanmali.
+    String fullPath;
+    Response response;
 
 
-        //http://www.heallifehospital.com/api/ipdList
+    @Given("Api kullanicisi sisteme admin olarak giris yapar")
+    public void api_kullanicisi_sisteme_admin_olarak_giris_yapar() {
+
+        token = "5ecFJypdGv16TKMdvHTbY8ZE3rAfny";
+
+    }
+
+    @Given("Api kullanicisi url ile birlikte iki parametreli giris yapar parametreler {string} ve {string}")
+    public void api_kullanicisi_url_ile_birlikte_iki_parametreli_giris_yapar_parametreler_ve(String pp1, String pp2) {
+
+        //https://www.heallifehospital.com/api/opdList
         spec = new RequestSpecBuilder().setBaseUri("http://www.heallifehospital.com").build(); // ana sayfa oluşturuldu
 
-        spec.pathParams("pp1","api","pp2","ipdList");// parametreler oluşturuldu
+        spec.pathParams("pp1",pp1,"pp2",pp2);// parametreler oluşturuldu
 
-        String fullPath = "/{pp1}/{pp2}"; // parametre girişi için kolay bir string oluşturuldu
+        fullPath = "/{pp1}/{pp2}"; // parametre girişi için kolay bir string oluşturuldu
 
-        String token = "Wbg6prp8qsGoOjfnY5nerVhTikDGDv";
+    }
 
-        Response response = given()
+    @When("Api kullanicisi bodysiz get request yapar")
+    public void api_kullanicisi_bodysiz_get_request_yapar() {
+
+        response = given()
                 .contentType(ContentType.JSON)  // gönderdiğim veriler json formatında
                 .spec(spec) // olşturduğum ( spec isimli obje )base url ve parametreleri kullanacağım
                 .headers(
@@ -45,18 +52,19 @@ public class Test03 {
                 .log().all()            // oluşturuduğumuz requesti toplu halde görmek için
                 .get(fullPath);        // parametrelerle beraber, request type girişi
 
+    }
 
-        System.out.println("************ Response **************");
-        response.prettyPrint();
-
+    @Then("Api kullanicisi istenen bilgileri test eder")
+    public void api_kullanicisi_istenen_bilgileri_test_eder() {
         response
                 .then()
                 .assertThat()
                 .statusCode(200)
                 .body("message",equalTo("Success"))
         ;
-
-
-
     }
+
+
+
+
 }
